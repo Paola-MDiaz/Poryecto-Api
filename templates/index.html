@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Gestor de Tareas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { max-width: 800px; margin-top: 50px; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card p-4">
+            <h2 class="text-center mb-4">📝 Mis Tareas</h2>
+            
+            <div class="input-group mb-3">
+                <input type="text" id="titulo" class="form-control" placeholder="Título de la tarea">
+                <input type="text" id="desc" class="form-control" placeholder="Descripción">
+                <button class="btn btn-success" onclick="agregarTarea()">Agregar</button>
+            </div>
+
+            <table class="table table-striped mt-4">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tarea</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-tareas">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Esta función pide los datos a tu API y los dibuja "bonitos"
+        function cargarTareas() {
+            fetch('/tareas')
+                .then(res => res.json())
+                .then(data => {
+                    let tabla = document.getElementById('lista-tareas');
+                    tabla.innerHTML = '';
+                    data.forEach(t => {
+                        tabla.innerHTML += `
+                            <tr>
+                                <td><strong>${t.titulo}</strong></td>
+                                <td>${t.descripcion}</td>
+                                <td><span class="badge bg-info text-dark">${t.estado}</span></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="borrar(${t.id})">Eliminar</button>
+                                </td>
+                            </tr>`;
+                    });
+                });
+        }
+
+        function agregarTarea() {
+            const titulo = document.getElementById('titulo').value;
+            const desc = document.getElementById('desc').value;
+            
+            fetch('/tareas', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({titulo: titulo, descripcion: desc})
+            }).then(() => {
+                document.getElementById('titulo').value = '';
+                document.getElementById('desc').value = '';
+                cargarTareas();
+            });
+        }
+
+        function borrar(id) {
+            fetch(`/tareas/${id}`, { method: 'DELETE' }).then(() => cargarTareas());
+        }
+
+        // Cargar tareas al abrir la página
+        cargarTareas();
+    </script>
+</body>
+</html>
